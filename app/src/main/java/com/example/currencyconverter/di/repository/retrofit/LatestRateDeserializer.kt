@@ -18,9 +18,6 @@ class LatestRateDeserializer : JsonDeserializer<LatestRateResponse> {
         val jsonObject = json?.asJsonObject
 
         jsonObject?.let {
-            if (it.has("timestamp")) {
-                latestRateResponse.timestamp = it["timestamp"].asLong
-            }
             if (it.has("base")) {
                 latestRateResponse.baseCurrency = it["base"].asString
             }

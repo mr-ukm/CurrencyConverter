@@ -3,11 +3,13 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="../../.gradle/caches/transforms-3/35254070af7534d00d0e778ac29c6470/transformed/appcompat-1.4.2/res/layout/abc_list_menu_item_icon.xml" value="0.22826086956521738" />
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.191" />
         <entry key="app/src/main/res/drawable/ic_baseline_refresh_24.xml" value="0.191" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.191" />
         <entry key="app/src/main/res/drawable/ic_money_convert_icon.xml" value="0.191" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.22056159420289856" />
+        <entry key="app/src/main/res/layout/item_drop_down.xml" value="0.22826086956521738" />
         <entry key="app/src/main/res/menu/main_activity_menu.xml" value="0.2604166666666667" />
       </map>
     </option>

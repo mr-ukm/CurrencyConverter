@@ -49,4 +49,9 @@ class MainViewModel @Inject constructor(
             daoRepository.insertAllRates(rates = rates)
         }
     }
+
+    suspend fun getCurrencyListFromDB() =
+        withContext(Dispatchers.IO) {
+            return@withContext daoRepository.getCurrencyListFromDB()
+        }
 }

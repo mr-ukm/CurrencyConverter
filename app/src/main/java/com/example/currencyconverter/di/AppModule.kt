@@ -1,12 +1,18 @@
 package com.example.currencyconverter.di
 
+import android.content.Context
+import androidx.room.Room
 import com.example.currencyconverter.di.repository.APIRepository
+import com.example.currencyconverter.di.repository.DaoRepository
+import com.example.currencyconverter.di.repository.dao.AppDatabase
+import com.example.currencyconverter.di.repository.dao.RateDao
 import com.example.currencyconverter.di.repository.retrofit.APIService
 import com.example.currencyconverter.di.repository.retrofit.CustomGsonConverterFactory
 import com.example.currencyconverter.di.repository.retrofit.LatestRateDeserializer
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -43,4 +49,17 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAPIRepository(apiService: APIService) = APIRepository(apiService = apiService)
+
+    @Provides
+    @Singleton
+    fun provideRoomDatabase(@ApplicationContext applicationContext: Context) =
+        Room.databaseBuilder(applicationContext, AppDatabase::class.java, "database").build()
+
+    @Provides
+    @Singleton
+    fun provideRateDAO(appDatabase: AppDatabase) = appDatabase.rateDao()
+
+    @Provides
+    @Singleton
+    fun provideDaoRepository(rateDao: RateDao) = DaoRepository(rateDao = rateDao)
 }

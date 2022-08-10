@@ -1,26 +1,31 @@
 package com.example.currencyconverter.ui
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.example.currencyconverter.constant.Constants
 import com.example.currencyconverter.di.repository.APIRepository
+import com.example.currencyconverter.di.repository.DaoRepository
 import com.example.currencyconverter.model.LatestRateResponse
+import com.example.currencyconverter.model.Rate
 import com.example.currencyconverter.model.Response
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(private val apiRepository: APIRepository) : ViewModel() {
+class MainViewModel @Inject constructor(
+    private val apiRepository: APIRepository,
+    private val daoRepository: DaoRepository
+) : ViewModel() {
 
-    fun getLatestRates() = flow<Response<LatestRateResponse>> {
+    suspend fun getLatestRates() = flow<Response<LatestRateResponse>> {
         emit(Response.Loading())
-        val latestRateResponse = apiRepository.getLatestRates("00cb8d8a423b4f478731da5e163e9597")
+        val latestRateResponse = apiRepository.getLatestRates(Constants.GOLUKEY)
 
         val responseBody = latestRateResponse.body()
-        Log.d("customUjjwal", "ResponseBody: $responseBody")
 
         if (latestRateResponse.code() == 200) {
             responseBody?.let {
@@ -38,4 +43,10 @@ class MainViewModel @Inject constructor(private val apiRepository: APIRepository
     }.catch {
         emit(Response.Error(it.message.toString()))
     }.flowOn(Dispatchers.IO)
+
+    suspend fun addRateListInDB(rates: List<Rate>) {
+        withContext(Dispatchers.IO) {
+            daoRepository.insertAllRates(rates = rates)
+        }
+    }
 }

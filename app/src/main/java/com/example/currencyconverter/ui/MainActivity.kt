@@ -1,7 +1,6 @@
 package com.example.currencyconverter.ui
 
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -53,12 +52,11 @@ class MainActivity : AppCompatActivity() {
                         binding.progressBar.visibility = View.VISIBLE
                     }
                     is Response.Success -> {
+                        mainViewModel.addRateListInDB(response.data.rates)
                         binding.progressBar.visibility = View.GONE
-                        Log.d("customUjjwal", "Success result: ${response.data} ")
                     }
                     is Response.Error -> {
                         binding.progressBar.visibility = View.GONE
-                        Log.d("customUjjwal", "Error result: ${response.errorMessage}")
                     }
                 }
             }

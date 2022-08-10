@@ -7,7 +7,7 @@ data class LatestRateResponse(
     @SerializedName("base")
     var baseCurrency: String = "",
     @SerializedName("rates")
-    var rates: List<Pair<String, Double>> = emptyList(),
+    var rates: List<Rate> = emptyList(),
     @SerializedName("message")
     var errorMessage: String = ""
 )

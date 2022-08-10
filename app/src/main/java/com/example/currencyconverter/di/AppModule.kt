@@ -1,5 +1,6 @@
 package com.example.currencyconverter.di
 
+import com.example.currencyconverter.di.repository.retrofit.APIService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,6 +12,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
     @Provides
     @Singleton
     fun provideRetrofit(): Retrofit {
@@ -19,4 +21,10 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
+    @Provides
+    @Singleton
+    fun provideAPIService(retrofit: Retrofit): APIService =
+        retrofit.create(APIService::class.java)
+
 }

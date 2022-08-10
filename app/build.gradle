@@ -57,4 +57,7 @@ dependencies {
     // Hilt
     implementation "com.google.dagger:hilt-android:2.43"
     kapt "com.google.dagger:hilt-compiler:2.43"
+
+    // ViewModel
+    implementation 'androidx.fragment:fragment-ktx:1.5.1'
 }

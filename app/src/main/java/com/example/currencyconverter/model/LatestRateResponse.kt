@@ -3,9 +3,11 @@ package com.example.currencyconverter.model
 import com.google.gson.annotations.SerializedName
 
 data class LatestRateResponse(
-    val timestamp: Long,
+    var timestamp: Long = 0L,
     @SerializedName("base")
-    val baseCurrency: String,
+    var baseCurrency: String = "",
     @SerializedName("rates")
-    val rateList: List<Pair<String, Double>>
+    var rates: List<Pair<String, Double>> = emptyList(),
+    @SerializedName("message")
+    var errorMessage: String = ""
 )

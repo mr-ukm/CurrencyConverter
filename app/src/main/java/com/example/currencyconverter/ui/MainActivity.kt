@@ -17,8 +17,10 @@ import com.example.currencyconverter.databinding.ActivityMainBinding
 import com.example.currencyconverter.model.Response
 import com.example.currencyconverter.ui.adapter.RateListAdapter
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -134,6 +136,30 @@ class MainActivity : AppCompatActivity() {
             if (currencyList.size > 0) {
                 binding.currencyAutoCompleteTv.setText(currencyList[0], false)
             }
+            updateRateListAdapterAndRefresh()
         }
+    }
+
+    private fun updateRateListAdapterAndRefresh() {
+        lifecycleScope.launch {
+            val rateList = mainViewModel.getRateListFromDB()
+            val baseCurrency = getBaseCurrencyValueFromSharedPreference()
+            val rateMap = mainViewModel.getRateMapFromRateList(rateList = rateList)
+
+            withContext(Dispatchers.Default) {
+                rateListAdapter.updateAdapterData(
+                    rateList = rateList,
+                    baseCurrency = baseCurrency,
+                    rateMap = rateMap
+                )
+            }
+            rateListAdapter.notifyDataSetChanged()
+        }
+    }
+
+    private fun getBaseCurrencyValueFromSharedPreference(): String {
+        val sharedPreferences =
+            this.getSharedPreferences(Constants.SHARED_PREFERENCE_FILE, Context.MODE_PRIVATE)
+        return sharedPreferences.getString(Constants.BASE_CURRENCY, "")!!
     }
 }

@@ -9,4 +9,6 @@ class DaoRepository @Inject constructor(private val rateDao: RateDao) {
     suspend fun insertAllRates(rates: List<Rate>) = rateDao.insertAllRates(rates)
 
     suspend fun getCurrencyListFromDB() = rateDao.getCurrencyList()
+
+    suspend fun getRateListFromDB() = rateDao.getAllRates()
 }

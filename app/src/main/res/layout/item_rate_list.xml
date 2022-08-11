@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="160dp"
+    android:layout_width="120dp"
     android:layout_height="wrap_content"
-    android:layout_gravity="left"
-    android:elevation="8dp">
+    android:layout_gravity="start"
+    android:layout_margin="8dp"
+    android:elevation="8dp"
+    app:cardCornerRadius="4dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -13,8 +15,9 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/currency_name_tv"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:gravity="center"
             android:padding="8dp"
             android:textSize="18sp"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -24,9 +27,10 @@
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/currency_value_tv"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:ellipsize="end"
+            android:gravity="center"
             android:padding="8dp"
             android:textSize="18sp"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -36,4 +40,4 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

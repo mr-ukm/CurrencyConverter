@@ -54,4 +54,18 @@ class MainViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             return@withContext daoRepository.getCurrencyListFromDB()
         }
+
+    suspend fun getRateListFromDB() =
+        withContext(Dispatchers.IO) {
+            return@withContext daoRepository.getRateListFromDB()
+        }
+
+    suspend fun getRateMapFromRateList(rateList: List<Rate>): Map<String, Double> =
+        withContext(Dispatchers.Default) {
+            val rateMap: MutableMap<String, Double> = mutableMapOf()
+            rateList.forEach {
+                rateMap[it.currencyName] = it.currentValue
+            }
+            return@withContext rateMap
+        }
 }

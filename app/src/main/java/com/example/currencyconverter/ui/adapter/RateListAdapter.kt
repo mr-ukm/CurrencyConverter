@@ -43,7 +43,7 @@ class RateListAdapter :
         return rateList.size
     }
 
-    suspend fun updateAdapterData(
+    fun updateAdapterData(
         rateList: List<Rate>,
         baseCurrency: String,
         rateMap: Map<String, Double>

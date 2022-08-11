@@ -10,10 +10,12 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import com.example.currencyconverter.R
 import com.example.currencyconverter.constant.Constants
 import com.example.currencyconverter.databinding.ActivityMainBinding
 import com.example.currencyconverter.model.Response
+import com.example.currencyconverter.ui.adapter.RateListAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -26,18 +28,27 @@ class MainActivity : AppCompatActivity() {
     private lateinit var currencyDropDownAdapter: ArrayAdapter<String>
     private val currencyList: MutableList<String> = mutableListOf()
 
+    private lateinit var rateListAdapter: RateListAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         setupCurrencyListAdapter()
+        setupRateListAdapter()
         updateCurrencyRates(isCalledFromOnCreate = true)
     }
 
     private fun setupCurrencyListAdapter() {
         currencyDropDownAdapter = ArrayAdapter(this, R.layout.item_drop_down, currencyList)
         binding.currencyAutoCompleteTv.setAdapter(currencyDropDownAdapter)
+    }
+
+    private fun setupRateListAdapter() {
+        rateListAdapter = RateListAdapter()
+        binding.rateListRv.adapter = rateListAdapter
+        binding.rateListRv.layoutManager = GridLayoutManager(this, 3)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

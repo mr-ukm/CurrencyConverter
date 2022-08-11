@@ -55,6 +55,14 @@ class RateListAdapter :
         this.rateMap.putAll(rateMap)
     }
 
+    fun updateCurrentAmountValue(currencyAmount: Double) {
+        this.currentAmount = currencyAmount
+    }
+
+    fun updateSelectedCurrency(selectedCurrency: String) {
+        this.selectedCurrency = selectedCurrency
+    }
+
     private fun getConvertedAmount(outputCurrencyRate: Double): Double {
         val selectedCurrencyRate: Double = rateMap.getOrDefault(selectedCurrency, 1.0)
         return (currentAmount / selectedCurrencyRate) * outputCurrencyRate

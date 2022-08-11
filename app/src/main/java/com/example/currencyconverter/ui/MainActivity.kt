@@ -2,6 +2,8 @@ package com.example.currencyconverter.ui
 
 import android.content.Context
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -21,6 +23,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.*
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -32,6 +35,33 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var rateListAdapter: RateListAdapter
 
+    private val amountTextWatcher: TextWatcher = object : TextWatcher {
+
+        private var timer: Timer = Timer()
+        private val DELAY: Long = 1000
+        private var oldInputCurrencyValue = ""
+
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+        }
+
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+        }
+
+        override fun afterTextChanged(s: Editable?) {
+            timer.cancel()
+            timer = Timer()
+            binding.progressBar.visibility = View.VISIBLE
+            timer.schedule(object : TimerTask() {
+                override fun run() {
+                    if (oldInputCurrencyValue != s.toString().trim()) {
+                        oldInputCurrencyValue = s.toString().trim()
+                        updateAdapterCurrentAmountValue(oldInputCurrencyValue.toDouble())
+                    }
+                }
+            }, DELAY)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -40,6 +70,16 @@ class MainActivity : AppCompatActivity() {
         setupCurrencyListAdapter()
         setupRateListAdapter()
         updateCurrencyRates(isCalledFromOnCreate = true)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.amountEt.addTextChangedListener(amountTextWatcher)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.amountEt.removeTextChangedListener(amountTextWatcher)
     }
 
     private fun setupCurrencyListAdapter() {
@@ -150,7 +190,7 @@ class MainActivity : AppCompatActivity() {
                 rateListAdapter.updateAdapterData(
                     rateList = rateList,
                     baseCurrency = baseCurrency,
-                    rateMap = rateMap
+                    rateMap = rateMap,
                 )
             }
             rateListAdapter.notifyDataSetChanged()
@@ -161,5 +201,13 @@ class MainActivity : AppCompatActivity() {
         val sharedPreferences =
             this.getSharedPreferences(Constants.SHARED_PREFERENCE_FILE, Context.MODE_PRIVATE)
         return sharedPreferences.getString(Constants.BASE_CURRENCY, "")!!
+    }
+
+    private fun updateAdapterCurrentAmountValue(currencyAmount: Double) {
+        lifecycleScope.launch(Dispatchers.Main) {
+            rateListAdapter.updateCurrentAmountValue(currencyAmount = currencyAmount)
+            rateListAdapter.notifyDataSetChanged()
+            binding.progressBar.visibility = View.GONE
+        }
     }
 }

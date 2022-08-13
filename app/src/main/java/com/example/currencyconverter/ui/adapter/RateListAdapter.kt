@@ -67,7 +67,7 @@ class RateListAdapter :
 
     private fun getConvertedAmount(outputCurrencyRate: Double): Double {
         val selectedCurrencyRate: Double = rateMap.getOrDefault(selectedCurrency, 1.0)
-        val convertedAmount = (currentAmount / selectedCurrencyRate) * outputCurrencyRate
+        val convertedAmount = (outputCurrencyRate / selectedCurrencyRate) * currentAmount
 
         val decimalFormat = DecimalFormat("#.###")
         decimalFormat.roundingMode = RoundingMode.DOWN

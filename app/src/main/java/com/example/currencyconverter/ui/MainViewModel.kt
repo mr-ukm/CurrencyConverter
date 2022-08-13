@@ -4,13 +4,15 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.currencyconverter.constant.Constants
+import com.example.currencyconverter.di.DefaultDispatcher
+import com.example.currencyconverter.di.IODispatcher
 import com.example.currencyconverter.di.repository.APIRepository
 import com.example.currencyconverter.di.repository.DaoRepository
 import com.example.currencyconverter.model.LatestRateResponse
 import com.example.currencyconverter.model.Rate
 import com.example.currencyconverter.model.Response
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -19,7 +21,9 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val apiRepository: APIRepository,
     private val daoRepository: DaoRepository,
-    private val sharedPreferences: SharedPreferences
+    private val sharedPreferences: SharedPreferences,
+    @DefaultDispatcher private val defaultDispatcher: CoroutineDispatcher,
+    @IODispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
     private val _inputCurrencyAmount: MutableStateFlow<Double> = MutableStateFlow(0.0)
@@ -39,7 +43,7 @@ class MainViewModel @Inject constructor(
         _selectedCurrency.value = selectedCurrency
     }
 
-    suspend fun updateCurrencyList(currencyList: List<String>) = withContext(Dispatchers.Default) {
+    suspend fun updateCurrencyList(currencyList: List<String>) = withContext(defaultDispatcher) {
         this@MainViewModel.currencyList.clear()
         this@MainViewModel.currencyList.addAll(currencyList)
     }
@@ -70,26 +74,26 @@ class MainViewModel @Inject constructor(
         }
     }.catch {
         emit(Response.Error(it.message.toString()))
-    }.flowOn(Dispatchers.IO)
+    }.flowOn(ioDispatcher)
 
     suspend fun addRateListInDB(rates: List<Rate>) {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             daoRepository.insertAllRates(rates = rates)
         }
     }
 
     suspend fun getCurrencyListFromDB() =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             return@withContext daoRepository.getCurrencyListFromDB()
         }
 
     suspend fun getRateListFromDB() =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             return@withContext daoRepository.getRateListFromDB()
         }
 
     suspend fun getRateMapFromRateList(rateList: List<Rate>): Map<String, Double> =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
             val rateMap: MutableMap<String, Double> = mutableMapOf()
             rateList.forEach {
                 rateMap[it.currencyName] = it.currentValue
@@ -97,12 +101,12 @@ class MainViewModel @Inject constructor(
             return@withContext rateMap
         }
 
-    suspend fun canDataBeRefreshed() = withContext(Dispatchers.Default) {
+    suspend fun canDataBeRefreshed() = withContext(defaultDispatcher) {
         val lastSyncTimestamp = sharedPreferences.getLong(Constants.API_SUCCESS_TIMESTAMP, 0)
         (System.currentTimeMillis() - lastSyncTimestamp > Constants.API_SYNC_THRESHOLD)
     }
 
-    suspend fun getBaseCurrencyValueFromSharedPreference() = withContext(Dispatchers.Default) {
+    suspend fun getBaseCurrencyValueFromSharedPreference() = withContext(defaultDispatcher) {
         sharedPreferences.getString(Constants.BASE_CURRENCY, "")!!
     }
 

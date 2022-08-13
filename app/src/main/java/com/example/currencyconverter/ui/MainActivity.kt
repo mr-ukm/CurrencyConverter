@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         setupAdapter()
-        updateCurrencyRates(isCalledFromOnCreate = true)
+        updateCurrencyRatesFromAPI(isCalledFromOnCreate = true)
         observeSelectedCurrencyAndInputAmountChanges()
     }
 
@@ -106,9 +106,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupAdapter() {
-        currencyDropDownAdapter =
-            ArrayAdapter(this, R.layout.item_drop_down, mainViewModel.getCurrencyList())
-        binding.currencyAutoCompleteTv.setAdapter(currencyDropDownAdapter)
+        updateCurrencyNameListAdapter()
 
         rateListAdapter = RateListAdapter()
         binding.rateListRv.adapter = rateListAdapter
@@ -123,7 +121,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.refresh_menu -> {
-                updateCurrencyRates()
+                updateCurrencyRatesFromAPI()
                 true
             }
             else -> {
@@ -132,15 +130,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateCurrencyRates(isCalledFromOnCreate: Boolean = false) {
+    private fun updateCurrencyRatesFromAPI(isCalledFromOnCreate: Boolean = false) {
         lifecycleScope.launch {
             if (!mainViewModel.canDataBeRefreshed()) {
-                if (isCalledFromOnCreate) { // Just load the adapter data from local data
-                    updateCurrencyList()
-                } else { // not from onCreate, data cannot be refreshed so show snackbar
+                if (!isCalledFromOnCreate) { // show snackBar only when is it not auto called from onCreate
                     Snackbar.make(
                         binding.bottomViewSnackBar,
-                        "TimeDifference between last API call & next API call needs to be atleast 30 mins",
+                        "TimeDifference between last API call & next API call needs to be at least 30 min",
                         Snackbar.LENGTH_INDEFINITE
                     ).apply {
                         setAction("DISMISS") {
@@ -148,8 +144,8 @@ class MainActivity : AppCompatActivity() {
                         }
                         show()
                     }
-                    return@launch
                 }
+                return@launch
             }
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 mainViewModel.getLatestRates().collectLatest { response ->
@@ -163,7 +159,7 @@ class MainActivity : AppCompatActivity() {
                             mainViewModel.updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
                                 response.data.baseCurrency
                             )
-                            updateCurrencyList()
+                            updateCurrencyNameListAdapter()
                         }
                         is Response.Error -> {
                             binding.progressBar.visibility = View.GONE
@@ -174,7 +170,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateCurrencyList() {
+    private fun updateCurrencyNameListAdapter() {
         lifecycleScope.launch {
             val updatedCurrencyList = mainViewModel.getCurrencyListFromDB()
             mainViewModel.updateCurrencyList(currencyList = updatedCurrencyList)
@@ -187,14 +183,16 @@ class MainActivity : AppCompatActivity() {
 
             binding.currencyAutoCompleteTv.setAdapter(currencyDropDownAdapter)
 
-            if (mainViewModel.getCurrencyList().isNotEmpty() && mainViewModel.selectedCurrency.value.isEmpty()) {
+            if (mainViewModel.getCurrencyList()
+                    .isNotEmpty() && mainViewModel.selectedCurrency.value.isEmpty()
+            ) {
                 binding.currencyAutoCompleteTv.setText(mainViewModel.getCurrencyList()[0], false)
             }
-            updateRateListAdapterAndRefresh()
+            updateRateValueListAdapter()
         }
     }
 
-    private fun updateRateListAdapterAndRefresh() {
+    private fun updateRateValueListAdapter() {
         lifecycleScope.launch {
             val rateList = mainViewModel.getRateListFromDB()
             val baseCurrency = mainViewModel.getBaseCurrencyValueFromSharedPreference()

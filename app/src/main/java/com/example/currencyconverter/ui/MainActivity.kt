@@ -8,7 +8,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
@@ -20,6 +19,7 @@ import com.example.currencyconverter.constant.Constants
 import com.example.currencyconverter.databinding.ActivityMainBinding
 import com.example.currencyconverter.model.Response
 import com.example.currencyconverter.ui.adapter.RateListAdapter
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
@@ -144,11 +144,16 @@ class MainActivity : AppCompatActivity() {
                 if (isCalledFromOnCreate) { // Just load the adapter data
                     updateCurrencyList()
                 } else {
-                    Toast.makeText(
-                        this@MainActivity,
+                    Snackbar.make(
+                        binding.bottomViewSnackBar,
                         "TimeDifference between last API call & next API call needs to be atleast 30 mins",
-                        Toast.LENGTH_LONG
-                    ).show()
+                        Snackbar.LENGTH_INDEFINITE
+                    ).apply {
+                        setAction("DISMISS") {
+                            dismiss()
+                        }
+                        show()
+                    }
                     return@launch
                 }
             }

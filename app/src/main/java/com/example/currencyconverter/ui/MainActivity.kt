@@ -86,8 +86,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
-        setupCurrencyListAdapter()
-        setupRateListAdapter()
+        setupAdapter()
         updateCurrencyRates(isCalledFromOnCreate = true)
         observeSelectedCurrencyAndInputAmountChanges()
     }
@@ -109,13 +108,11 @@ class MainActivity : AppCompatActivity() {
         binding.currencyAutoCompleteTv.removeTextChangedListener(selectedCurrencyTextWatcher)
     }
 
-    private fun setupCurrencyListAdapter() {
+    private fun setupAdapter() {
         currencyDropDownAdapter =
             ArrayAdapter(this, R.layout.item_drop_down, mainViewModel.getCurrencyList())
         binding.currencyAutoCompleteTv.setAdapter(currencyDropDownAdapter)
-    }
 
-    private fun setupRateListAdapter() {
         rateListAdapter = RateListAdapter()
         binding.rateListRv.adapter = rateListAdapter
         binding.rateListRv.layoutManager = GridLayoutManager(this, 3)
@@ -141,9 +138,9 @@ class MainActivity : AppCompatActivity() {
     private fun updateCurrencyRates(isCalledFromOnCreate: Boolean = false) {
         lifecycleScope.launch {
             if (!canDataBeRefreshed()) {
-                if (isCalledFromOnCreate) { // Just load the adapter data
+                if (isCalledFromOnCreate) { // Just load the adapter data from local data
                     updateCurrencyList()
-                } else {
+                } else { // not from onCreate, data cannot be refreshed so show snackbar
                     Snackbar.make(
                         binding.bottomViewSnackBar,
                         "TimeDifference between last API call & next API call needs to be atleast 30 mins",

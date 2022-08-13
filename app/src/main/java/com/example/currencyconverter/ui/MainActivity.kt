@@ -64,6 +64,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val selectedCurrencyTextWatcher: TextWatcher = object : TextWatcher {
+        private var oldSelectedCurrency = ""
+
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
         }
 
@@ -71,8 +73,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun afterTextChanged(s: Editable?) {
-            binding.progressBar.visibility = View.VISIBLE
-            mainViewModel.updateSelectedCurrency(s.toString())
+            if (oldSelectedCurrency != s.toString()) {
+                binding.progressBar.visibility = View.VISIBLE
+                mainViewModel.updateSelectedCurrency(s.toString())
+                oldSelectedCurrency = s.toString()
+            }
         }
     }
 

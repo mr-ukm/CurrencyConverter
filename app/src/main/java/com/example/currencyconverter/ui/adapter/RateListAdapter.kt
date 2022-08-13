@@ -70,7 +70,7 @@ class RateListAdapter :
         val convertedAmount = (currentAmount / selectedCurrencyRate) * outputCurrencyRate
 
         val decimalFormat = DecimalFormat("#.###")
-        decimalFormat.roundingMode = RoundingMode.DOWN
+        decimalFormat.roundingMode = RoundingMode.UP
 
         return decimalFormat.format(convertedAmount).toDouble()
     }

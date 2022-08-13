@@ -11,7 +11,9 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.currencyconverter.R
 import com.example.currencyconverter.constant.Constants
@@ -38,7 +40,7 @@ class MainActivity : AppCompatActivity() {
     private val amountTextWatcher: TextWatcher = object : TextWatcher {
 
         private var timer: Timer = Timer()
-        private val DELAY: Long = 1000
+        private val DELAY: Long = 1000 // For debounce logic
         private var oldInputCurrencyValue = ""
 
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -55,7 +57,7 @@ class MainActivity : AppCompatActivity() {
                 override fun run() {
                     if (oldInputCurrencyValue != s.toString().trim()) {
                         oldInputCurrencyValue = s.toString().trim()
-                        updateAdapterCurrentAmountValue(if (oldInputCurrencyValue.isNotEmpty()) oldInputCurrencyValue.toDouble() else 0.0)
+                        mainViewModel.updateInputCurrencyValue(if (oldInputCurrencyValue.isNotEmpty()) oldInputCurrencyValue.toDouble() else 0.0)
                     }
                 }
             }, DELAY)
@@ -71,9 +73,8 @@ class MainActivity : AppCompatActivity() {
 
         override fun afterTextChanged(s: Editable?) {
             binding.progressBar.visibility = View.VISIBLE
-            updateAdapterSelectedCurrency(s.toString())
+            mainViewModel.updateSelectedCurrency(s.toString())
         }
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,6 +85,12 @@ class MainActivity : AppCompatActivity() {
         setupCurrencyListAdapter()
         setupRateListAdapter()
         updateCurrencyRates(isCalledFromOnCreate = true)
+        observeSelectedCurrencyAndInputAmountChanges()
+    }
+
+    private fun observeSelectedCurrencyAndInputAmountChanges() {
+        observeInputAmountChanges()
+        observeSelectedCurrencyChanges()
     }
 
     override fun onResume() {
@@ -139,21 +146,23 @@ class MainActivity : AppCompatActivity() {
                 updateCurrencyList()
                 return@launch
             }
-            mainViewModel.getLatestRates().collectLatest { response ->
-                when (response) {
-                    is Response.Loading -> {
-                        binding.progressBar.visibility = View.VISIBLE
-                    }
-                    is Response.Success -> {
-                        mainViewModel.addRateListInDB(response.data.rates)
-                        binding.progressBar.visibility = View.GONE
-                        updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
-                            response.data.baseCurrency
-                        )
-                        updateCurrencyList()
-                    }
-                    is Response.Error -> {
-                        binding.progressBar.visibility = View.GONE
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                mainViewModel.getLatestRates().collectLatest { response ->
+                    when (response) {
+                        is Response.Loading -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                        }
+                        is Response.Success -> {
+                            mainViewModel.addRateListInDB(response.data.rates)
+                            binding.progressBar.visibility = View.GONE
+                            updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
+                                response.data.baseCurrency
+                            )
+                            updateCurrencyList()
+                        }
+                        is Response.Error -> {
+                            binding.progressBar.visibility = View.GONE
+                        }
                     }
                 }
             }
@@ -219,19 +228,27 @@ class MainActivity : AppCompatActivity() {
         return sharedPreferences.getString(Constants.BASE_CURRENCY, "")!!
     }
 
-    private fun updateAdapterCurrentAmountValue(currencyAmount: Double) {
+    private fun observeInputAmountChanges() {
         lifecycleScope.launch(Dispatchers.Main) {
-            rateListAdapter.updateCurrentAmountValue(currencyAmount = currencyAmount)
-            rateListAdapter.notifyDataSetChanged()
-            binding.progressBar.visibility = View.GONE
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                mainViewModel.inputCurrencyAmount.collectLatest {
+                    rateListAdapter.updateCurrentAmountValue(currencyAmount = it)
+                    rateListAdapter.notifyDataSetChanged()
+                    binding.progressBar.visibility = View.GONE
+                }
+            }
         }
     }
 
-    private fun updateAdapterSelectedCurrency(selectedCurrency: String) {
+    private fun observeSelectedCurrencyChanges() {
         lifecycleScope.launch(Dispatchers.Main) {
-            rateListAdapter.updateSelectedCurrency(selectedCurrency = selectedCurrency)
-            rateListAdapter.notifyDataSetChanged()
-            binding.progressBar.visibility = View.GONE
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                mainViewModel.selectedCurrency.collectLatest {
+                    rateListAdapter.updateSelectedCurrency(selectedCurrency = it)
+                    rateListAdapter.notifyDataSetChanged()
+                    binding.progressBar.visibility = View.GONE
+                }
+            }
         }
     }
 }

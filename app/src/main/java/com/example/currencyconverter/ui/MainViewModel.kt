@@ -27,6 +27,8 @@ class MainViewModel @Inject constructor(
     private val _selectedCurrency: MutableStateFlow<String> = MutableStateFlow("")
     val selectedCurrency = _selectedCurrency.asStateFlow()
 
+    private val currencyList: MutableList<String> = mutableListOf()
+
     fun updateInputCurrencyValue(amount: Double) {
         _inputCurrencyAmount.value = amount
     }
@@ -34,6 +36,13 @@ class MainViewModel @Inject constructor(
     fun updateSelectedCurrency(selectedCurrency: String) {
         _selectedCurrency.value = selectedCurrency
     }
+
+    suspend fun updateCurrencyList(currencyList: List<String>) = withContext(Dispatchers.Default) {
+        this@MainViewModel.currencyList.clear()
+        this@MainViewModel.currencyList.addAll(currencyList)
+    }
+
+    fun getCurrencyList(): List<String> = this.currencyList
 
     suspend fun getLatestRates() = flow<Response<LatestRateResponse>> {
         emit(Response.Loading())

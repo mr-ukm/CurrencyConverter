@@ -33,7 +33,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val mainViewModel: MainViewModel by viewModels()
     private lateinit var currencyDropDownAdapter: ArrayAdapter<String>
-    private val currencyList: MutableList<String> = mutableListOf()
 
     private lateinit var rateListAdapter: RateListAdapter
 
@@ -106,7 +105,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupCurrencyListAdapter() {
-        currencyDropDownAdapter = ArrayAdapter(this, R.layout.item_drop_down, currencyList)
+        currencyDropDownAdapter =
+            ArrayAdapter(this, R.layout.item_drop_down, mainViewModel.getCurrencyList())
         binding.currencyAutoCompleteTv.setAdapter(currencyDropDownAdapter)
     }
 
@@ -191,15 +191,18 @@ class MainActivity : AppCompatActivity() {
     private fun updateCurrencyList() {
         lifecycleScope.launch {
             val updatedCurrencyList = mainViewModel.getCurrencyListFromDB()
-            currencyList.clear()
-            currencyList.addAll(updatedCurrencyList)
+            mainViewModel.updateCurrencyList(currencyList = updatedCurrencyList)
             currencyDropDownAdapter =
-                ArrayAdapter(this@MainActivity, R.layout.item_drop_down, currencyList)
+                ArrayAdapter(
+                    this@MainActivity,
+                    R.layout.item_drop_down,
+                    mainViewModel.getCurrencyList()
+                )
 
             binding.currencyAutoCompleteTv.setAdapter(currencyDropDownAdapter)
 
-            if (currencyList.size > 0) {
-                binding.currencyAutoCompleteTv.setText(currencyList[0], false)
+            if (mainViewModel.getCurrencyList().isNotEmpty()) {
+                binding.currencyAutoCompleteTv.setText(mainViewModel.getCurrencyList()[0], false)
             }
             updateRateListAdapterAndRefresh()
         }

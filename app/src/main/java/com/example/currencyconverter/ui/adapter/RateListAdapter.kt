@@ -5,6 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.currencyconverter.databinding.ItemRateListBinding
 import com.example.currencyconverter.model.Rate
+import java.math.RoundingMode
+import java.text.DecimalFormat
 
 class RateListAdapter :
     RecyclerView.Adapter<RateListAdapter.RateListViewHolder>() {
@@ -65,6 +67,11 @@ class RateListAdapter :
 
     private fun getConvertedAmount(outputCurrencyRate: Double): Double {
         val selectedCurrencyRate: Double = rateMap.getOrDefault(selectedCurrency, 1.0)
-        return (currentAmount / selectedCurrencyRate) * outputCurrencyRate
+        val convertedAmount = (currentAmount / selectedCurrencyRate) * outputCurrencyRate
+
+        val decimalFormat = DecimalFormat("#.###")
+        decimalFormat.roundingMode = RoundingMode.DOWN
+
+        return decimalFormat.format(convertedAmount).toDouble()
     }
 }

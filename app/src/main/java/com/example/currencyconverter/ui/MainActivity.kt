@@ -141,15 +141,16 @@ class MainActivity : AppCompatActivity() {
     private fun updateCurrencyRates(isCalledFromOnCreate: Boolean = false) {
         lifecycleScope.launch {
             if (!canDataBeRefreshed()) {
-                if (!isCalledFromOnCreate) { // Don't show toast if function called by app launch
+                if (isCalledFromOnCreate) { // Just load the adapter data
+                    updateCurrencyList()
+                } else {
                     Toast.makeText(
                         this@MainActivity,
                         "TimeDifference between last API call & next API call needs to be atleast 30 mins",
                         Toast.LENGTH_LONG
                     ).show()
+                    return@launch
                 }
-                updateCurrencyList()
-                return@launch
             }
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 mainViewModel.getLatestRates().collectLatest { response ->

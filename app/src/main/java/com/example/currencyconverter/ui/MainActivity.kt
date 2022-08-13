@@ -1,6 +1,5 @@
 package com.example.currencyconverter.ui
 
-import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -15,7 +14,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.currencyconverter.R
-import com.example.currencyconverter.constant.Constants
 import com.example.currencyconverter.databinding.ActivityMainBinding
 import com.example.currencyconverter.model.Response
 import com.example.currencyconverter.ui.adapter.RateListAdapter
@@ -33,7 +31,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val mainViewModel: MainViewModel by viewModels()
     private lateinit var currencyDropDownAdapter: ArrayAdapter<String>
-
     private lateinit var rateListAdapter: RateListAdapter
 
     private val amountTextWatcher: TextWatcher = object : TextWatcher {
@@ -137,7 +134,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateCurrencyRates(isCalledFromOnCreate: Boolean = false) {
         lifecycleScope.launch {
-            if (!canDataBeRefreshed()) {
+            if (!mainViewModel.canDataBeRefreshed()) {
                 if (isCalledFromOnCreate) { // Just load the adapter data from local data
                     updateCurrencyList()
                 } else { // not from onCreate, data cannot be refreshed so show snackbar
@@ -163,7 +160,7 @@ class MainActivity : AppCompatActivity() {
                         is Response.Success -> {
                             mainViewModel.addRateListInDB(response.data.rates)
                             binding.progressBar.visibility = View.GONE
-                            updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
+                            mainViewModel.updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
                                 response.data.baseCurrency
                             )
                             updateCurrencyList()
@@ -175,25 +172,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    private fun updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
-        baseCurrency: String
-    ) {
-        val sharedPreferences =
-            this.getSharedPreferences(Constants.SHARED_PREFERENCE_FILE, Context.MODE_PRIVATE)
-        with(sharedPreferences.edit()) {
-            putLong(Constants.API_SUCCESS_TIMESTAMP, System.currentTimeMillis())
-            putString(Constants.BASE_CURRENCY, baseCurrency)
-            apply()
-        }
-    }
-
-    private fun canDataBeRefreshed(): Boolean {
-        val sharedPreferences =
-            this.getSharedPreferences(Constants.SHARED_PREFERENCE_FILE, Context.MODE_PRIVATE)
-        val lastSyncTimestamp = sharedPreferences.getLong(Constants.API_SUCCESS_TIMESTAMP, 0)
-        return (System.currentTimeMillis() - lastSyncTimestamp > Constants.API_SYNC_THRESHOLD)
     }
 
     private fun updateCurrencyList() {
@@ -209,7 +187,7 @@ class MainActivity : AppCompatActivity() {
 
             binding.currencyAutoCompleteTv.setAdapter(currencyDropDownAdapter)
 
-            if (mainViewModel.getCurrencyList().isNotEmpty()) {
+            if (mainViewModel.getCurrencyList().isNotEmpty() && mainViewModel.selectedCurrency.value.isEmpty()) {
                 binding.currencyAutoCompleteTv.setText(mainViewModel.getCurrencyList()[0], false)
             }
             updateRateListAdapterAndRefresh()
@@ -219,7 +197,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateRateListAdapterAndRefresh() {
         lifecycleScope.launch {
             val rateList = mainViewModel.getRateListFromDB()
-            val baseCurrency = getBaseCurrencyValueFromSharedPreference()
+            val baseCurrency = mainViewModel.getBaseCurrencyValueFromSharedPreference()
             val rateMap = mainViewModel.getRateMapFromRateList(rateList = rateList)
 
             withContext(Dispatchers.Default) {
@@ -231,12 +209,6 @@ class MainActivity : AppCompatActivity() {
             }
             rateListAdapter.notifyDataSetChanged()
         }
-    }
-
-    private fun getBaseCurrencyValueFromSharedPreference(): String {
-        val sharedPreferences =
-            this.getSharedPreferences(Constants.SHARED_PREFERENCE_FILE, Context.MODE_PRIVATE)
-        return sharedPreferences.getString(Constants.BASE_CURRENCY, "")!!
     }
 
     private fun observeInputAmountChanges() {

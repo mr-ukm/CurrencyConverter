@@ -1,5 +1,6 @@
 package com.example.currencyconverter.ui
 
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.currencyconverter.constant.Constants
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val apiRepository: APIRepository,
-    private val daoRepository: DaoRepository
+    private val daoRepository: DaoRepository,
+    private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
 
     private val _inputCurrencyAmount: MutableStateFlow<Double> = MutableStateFlow(0.0)
@@ -45,6 +47,9 @@ class MainViewModel @Inject constructor(
     fun getCurrencyList(): List<String> = this.currencyList
 
     suspend fun getLatestRates() = flow<Response<LatestRateResponse>> {
+        if (!canDataBeRefreshed()) {
+            return@flow
+        }
         emit(Response.Loading())
         val latestRateResponse = apiRepository.getLatestRates(Constants.GOLUKEY)
         Log.d("customTag", "API Called")
@@ -91,4 +96,23 @@ class MainViewModel @Inject constructor(
             }
             return@withContext rateMap
         }
+
+    suspend fun canDataBeRefreshed() = withContext(Dispatchers.Default) {
+        val lastSyncTimestamp = sharedPreferences.getLong(Constants.API_SUCCESS_TIMESTAMP, 0)
+        (System.currentTimeMillis() - lastSyncTimestamp > Constants.API_SYNC_THRESHOLD)
+    }
+
+    suspend fun getBaseCurrencyValueFromSharedPreference() = withContext(Dispatchers.Default) {
+        sharedPreferences.getString(Constants.BASE_CURRENCY, "")!!
+    }
+
+    fun updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
+        baseCurrency: String
+    ) {
+        with(sharedPreferences.edit()) {
+            putLong(Constants.API_SUCCESS_TIMESTAMP, System.currentTimeMillis())
+            putString(Constants.BASE_CURRENCY, baseCurrency)
+            apply()
+        }
+    }
 }

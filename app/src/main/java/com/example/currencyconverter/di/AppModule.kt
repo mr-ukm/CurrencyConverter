@@ -1,7 +1,9 @@
 package com.example.currencyconverter.di
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.room.Room
+import com.example.currencyconverter.constant.Constants
 import com.example.currencyconverter.di.repository.APIRepository
 import com.example.currencyconverter.di.repository.DaoRepository
 import com.example.currencyconverter.di.repository.dao.AppDatabase
@@ -62,4 +64,12 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDaoRepository(rateDao: RateDao) = DaoRepository(rateDao = rateDao)
+
+    @Provides
+    @Singleton
+    fun provideSharedPreference(@ApplicationContext applicationContext: Context): SharedPreferences =
+        applicationContext.getSharedPreferences(
+            Constants.SHARED_PREFERENCE_FILE,
+            Context.MODE_PRIVATE
+        )
 }

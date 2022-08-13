@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
                 override fun run() {
                     if (oldInputCurrencyValue != s.toString().trim()) {
                         oldInputCurrencyValue = s.toString().trim()
-                        updateAdapterCurrentAmountValue(oldInputCurrencyValue.toDouble())
+                        updateAdapterCurrentAmountValue(if (oldInputCurrencyValue.isNotEmpty()) oldInputCurrencyValue.toDouble() else 0.0)
                     }
                 }
             }, DELAY)

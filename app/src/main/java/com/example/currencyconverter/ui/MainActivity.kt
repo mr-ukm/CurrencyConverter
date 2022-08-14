@@ -84,13 +84,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         setupAdapter()
+        observeSharedAndStateFlowChanges()
         updateCurrencyRatesFromAPI(isCalledFromOnCreate = true)
-        observeSelectedCurrencyAndInputAmountChanges()
     }
 
-    private fun observeSelectedCurrencyAndInputAmountChanges() {
+    private fun observeSharedAndStateFlowChanges() {
         observeInputAmountChanges()
         observeSelectedCurrencyChanges()
+        observeUpdateRateListChanges()
     }
 
     override fun onResume() {
@@ -147,31 +148,13 @@ class MainActivity : AppCompatActivity() {
                 }
                 return@launch
             }
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                mainViewModel.getLatestRates().collectLatest { response ->
-                    when (response) {
-                        is Response.Loading -> {
-                            binding.progressBar.visibility = View.VISIBLE
-                        }
-                        is Response.Success -> {
-                            mainViewModel.addRateListInDB(response.data.rates)
-                            binding.progressBar.visibility = View.GONE
-                            mainViewModel.updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
-                                response.data.baseCurrency
-                            )
-                            updateCurrencyNameListAdapter()
-                        }
-                        is Response.Error -> {
-                            binding.progressBar.visibility = View.GONE
-                        }
-                    }
-                }
-            }
+            mainViewModel.updateCurrencyRatesFromAPI()
         }
     }
 
     private fun updateCurrencyNameListAdapter() {
         lifecycleScope.launch {
+            binding.progressBar.visibility = View.VISIBLE
             val updatedCurrencyList = mainViewModel.getCurrencyListFromDB()
             mainViewModel.updateCurrencyList(currencyList = updatedCurrencyList)
             currencyDropDownAdapter =
@@ -189,11 +172,13 @@ class MainActivity : AppCompatActivity() {
                 binding.currencyAutoCompleteTv.setText(mainViewModel.getCurrencyList()[0], false)
             }
             updateRateValueListAdapter()
+            binding.progressBar.visibility = View.GONE
         }
     }
 
     private fun updateRateValueListAdapter() {
         lifecycleScope.launch {
+            binding.progressBar.visibility = View.VISIBLE
             val rateList = mainViewModel.getRateListFromDB()
             val baseCurrency = mainViewModel.getBaseCurrencyValueFromSharedPreference()
             val rateMap = mainViewModel.getRateMapFromRateList(rateList = rateList)
@@ -206,6 +191,7 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             rateListAdapter.notifyDataSetChanged()
+            binding.progressBar.visibility = View.GONE
         }
     }
 
@@ -213,6 +199,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 mainViewModel.inputCurrencyAmount.collectLatest {
+                    binding.progressBar.visibility = View.VISIBLE
                     rateListAdapter.updateCurrentAmountValue(currencyAmount = it)
                     rateListAdapter.notifyDataSetChanged()
                     binding.progressBar.visibility = View.GONE
@@ -225,9 +212,35 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 mainViewModel.selectedCurrency.collectLatest {
+                    binding.progressBar.visibility = View.VISIBLE
                     rateListAdapter.updateSelectedCurrency(selectedCurrency = it)
                     rateListAdapter.notifyDataSetChanged()
                     binding.progressBar.visibility = View.GONE
+                }
+            }
+        }
+    }
+
+    private fun observeUpdateRateListChanges() {
+        lifecycleScope.launch(Dispatchers.Main) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                mainViewModel.updateLatestRates.collectLatest { response ->
+                    when (response) {
+                        is Response.Loading -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                        }
+                        is Response.Success -> {
+                            mainViewModel.addRateListInDB(response.data.rates)
+                            binding.progressBar.visibility = View.GONE
+                            mainViewModel.updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
+                                response.data.baseCurrency
+                            )
+                            updateCurrencyNameListAdapter()
+                        }
+                        is Response.Error -> {
+                            binding.progressBar.visibility = View.GONE
+                        }
+                    }
                 }
             }
         }

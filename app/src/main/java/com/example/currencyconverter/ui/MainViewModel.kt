@@ -3,6 +3,7 @@ package com.example.currencyconverter.ui
 import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.currencyconverter.constant.Constants
 import com.example.currencyconverter.di.DefaultDispatcher
 import com.example.currencyconverter.di.IODispatcher
@@ -14,6 +15,7 @@ import com.example.currencyconverter.model.Response
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -35,6 +37,12 @@ class MainViewModel @Inject constructor(
 
     private val currencyList: MutableList<String> = mutableListOf()
 
+    private val _updateLatestRates: MutableSharedFlow<Response<LatestRateResponse>> =
+        MutableSharedFlow()
+
+    val updateLatestRates: SharedFlow<Response<LatestRateResponse>> =
+        _updateLatestRates.asSharedFlow()
+
     fun updateInputCurrencyValue(amount: Double) {
         _inputCurrencyAmount.value = amount
     }
@@ -50,31 +58,28 @@ class MainViewModel @Inject constructor(
 
     fun getCurrencyList(): List<String> = this.currencyList
 
-    suspend fun getLatestRates() = flow<Response<LatestRateResponse>> {
-        if (!canDataBeRefreshed()) {
-            return@flow
-        }
-        emit(Response.Loading())
-        val latestRateResponse = apiRepository.getLatestRates(Constants.GOLUKEY)
-        Log.d("customTag", "API Called")
-        val responseBody = latestRateResponse.body()
+    suspend fun updateCurrencyRatesFromAPI() {
+        viewModelScope.launch(ioDispatcher) {
+            _updateLatestRates.emit(Response.Loading())
+            val latestRateResponse = apiRepository.getLatestRates(Constants.GOLUKEY)
+            Log.d("customTag", "API Called")
+            val responseBody = latestRateResponse.body()
 
-        if (latestRateResponse.code() == 200) {
-            responseBody?.let {
-                emit(Response.Success(it))
-            } ?: kotlin.run {
-                emit(Response.Error("Response code 200, but response body is empty"))
-            }
-        } else {
-            responseBody?.let {
-                emit(Response.Error(it.errorMessage))
-            } ?: kotlin.run {
-                emit(Response.Error("Response code ${latestRateResponse.code()} Response body is empty"))
+            if (latestRateResponse.code() == 200) {
+                responseBody?.let {
+                    _updateLatestRates.emit(Response.Success(it))
+                } ?: kotlin.run {
+                    _updateLatestRates.emit(Response.Error("Response code 200, but response body is empty"))
+                }
+            } else {
+                responseBody?.let {
+                    _updateLatestRates.emit(Response.Error(it.errorMessage))
+                } ?: kotlin.run {
+                    _updateLatestRates.emit(Response.Error("Response code ${latestRateResponse.code()} Response body is empty"))
+                }
             }
         }
-    }.catch {
-        emit(Response.Error(it.message.toString()))
-    }.flowOn(ioDispatcher)
+    }
 
     suspend fun addRateListInDB(rates: List<Rate>) {
         withContext(ioDispatcher) {

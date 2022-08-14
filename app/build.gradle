@@ -59,7 +59,7 @@ dependencies {
     kapt "com.google.dagger:hilt-compiler:2.43"
 
     // ViewModel
-    implementation 'androidx.fragment:fragment-ktx:1.5.1'
+    implementation 'androidx.fragment:fragment-ktx:1.5.2'
 
     // Room
     implementation "androidx.room:room-ktx:2.4.3"

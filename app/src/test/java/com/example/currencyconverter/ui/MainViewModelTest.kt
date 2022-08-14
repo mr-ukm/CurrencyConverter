@@ -60,41 +60,32 @@ class MainViewModelTest {
     }
 
     @Test
-    fun `getRateMapFromRateList for list containing 2 values verifying exact mapping`() {
+    fun `inputCurrencyAmount stateflow test for 2 updates`() {
         runTest {
-            val rateList = listOf(
-                Rate(currencyName = "INR", currentValue = 50.0),
-                Rate(currencyName = "JPY", currentValue = 10.0)
-            )
+            mainViewModel.inputCurrencyAmount.test {
+                assertEquals(0.0, awaitItem(), 0.0) // default value
 
-            val rateMapFromViewModel = mainViewModel.getRateMapFromRateList(rateList = rateList)
+                mainViewModel.updateInputCurrencyValue(10.5)
+                assertEquals(10.5, awaitItem(), 0.0)
 
-            assertEquals(50.0, rateMapFromViewModel["INR"])
-            assertEquals(10.0, rateMapFromViewModel["JPY"])
-            assertNotEquals(50.1, rateMapFromViewModel["INR"])
-            assertNotEquals(9.9, rateMapFromViewModel["JPY"])
+                mainViewModel.updateInputCurrencyValue(20.0)
+                assertEquals(20.0, awaitItem(), 0.0)
+            }
         }
     }
 
     @Test
-    fun `canDataBeRefreshed for lastSyncTimestamp more than 30 min and function should return true`() {
+    fun `selectedCurrency stateflow test for 2 updates`() {
         runTest {
-            val mockLastSyncTimestamp = System.currentTimeMillis() - Constants.API_SYNC_THRESHOLD
-            whenever(sharedPreferences.getLong(Constants.API_SUCCESS_TIMESTAMP, 0)).thenReturn(
-                mockLastSyncTimestamp
-            )
-            assertTrue(mainViewModel.canDataBeRefreshed())
-        }
-    }
+            mainViewModel.selectedCurrency.test {
+                assertEquals("", awaitItem()) // default value
 
-    @Test
-    fun `canDataBeRefreshed for lastSyncTimestamp less than 30 min and function should return false`() {
-        runTest {
-            val mockLastSyncTimestamp = System.currentTimeMillis()
-            whenever(sharedPreferences.getLong(Constants.API_SUCCESS_TIMESTAMP, 0)).thenReturn(
-                mockLastSyncTimestamp
-            )
-            assertFalse(mainViewModel.canDataBeRefreshed())
+                mainViewModel.updateSelectedCurrency("INR")
+                assertEquals("INR", awaitItem())
+
+                mainViewModel.updateSelectedCurrency("JPY")
+                assertEquals("JPY", awaitItem())
+            }
         }
     }
 
@@ -177,6 +168,73 @@ class MainViewModelTest {
                     (secondEmit as com.example.currencyconverter.model.Response.Error).errorMessage
                 )
             }
+        }
+    }
+
+    @Test
+    fun getCurrencyListFromDBTest() {
+        runTest {
+            val currencyList = listOf("INR", "JPY", "USD")
+            whenever(daoRepository.getCurrencyListFromDB()).thenReturn(currencyList)
+            assertEquals(currencyList, mainViewModel.getCurrencyListFromDB())
+        }
+    }
+
+    @Test
+    fun getRateListFromDBTest() {
+        runTest {
+            val rateList = listOf(Rate("INR", 50.0), Rate("JPY", 10.0))
+            whenever(daoRepository.getRateListFromDB()).thenReturn(rateList)
+
+            assertEquals(rateList, mainViewModel.getRateListFromDB())
+        }
+    }
+
+    @Test
+    fun `getRateMapFromRateList for list containing 2 values verifying exact mapping`() {
+        runTest {
+            val rateList = listOf(
+                Rate(currencyName = "INR", currentValue = 50.0),
+                Rate(currencyName = "JPY", currentValue = 10.0)
+            )
+
+            val rateMapFromViewModel = mainViewModel.getRateMapFromRateList(rateList = rateList)
+
+            assertEquals(50.0, rateMapFromViewModel["INR"])
+            assertEquals(10.0, rateMapFromViewModel["JPY"])
+            assertNotEquals(50.1, rateMapFromViewModel["INR"])
+            assertNotEquals(9.9, rateMapFromViewModel["JPY"])
+        }
+    }
+
+    @Test
+    fun `canDataBeRefreshed for lastSyncTimestamp more than 30 min and function should return true`() {
+        runTest {
+            val mockLastSyncTimestamp = System.currentTimeMillis() - Constants.API_SYNC_THRESHOLD
+            whenever(sharedPreferences.getLong(Constants.API_SUCCESS_TIMESTAMP, 0)).thenReturn(
+                mockLastSyncTimestamp
+            )
+            assertTrue(mainViewModel.canDataBeRefreshed())
+        }
+    }
+
+    @Test
+    fun `canDataBeRefreshed for lastSyncTimestamp less than 30 min and function should return false`() {
+        runTest {
+            val mockLastSyncTimestamp = System.currentTimeMillis()
+            whenever(sharedPreferences.getLong(Constants.API_SUCCESS_TIMESTAMP, 0)).thenReturn(
+                mockLastSyncTimestamp
+            )
+            assertFalse(mainViewModel.canDataBeRefreshed())
+        }
+    }
+
+    @Test
+    fun getBaseCurrencyValueFromSharedPreferenceTest() {
+        runTest {
+            whenever(sharedPreferences.getString(Constants.BASE_CURRENCY, "")).thenReturn("JPY")
+            assertEquals("JPY", mainViewModel.getBaseCurrencyValueFromSharedPreference())
+            assertNotEquals("JPP", mainViewModel.getBaseCurrencyValueFromSharedPreference())
         }
     }
 }

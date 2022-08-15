@@ -51,9 +51,17 @@ class MainActivity : AppCompatActivity() {
             binding.progressBar.visibility = View.VISIBLE
             timer.schedule(object : TimerTask() {
                 override fun run() {
-                    if (oldInputCurrencyValue != s.toString().trim()) {
+                    if (!mainViewModel.checkIfTwoStringsAreSameDoubleValues(
+                            oldInput = oldInputCurrencyValue,
+                            newInput = s.toString()
+                        )
+                    ) {
                         oldInputCurrencyValue = s.toString().trim()
                         mainViewModel.updateInputCurrencyValue(if (oldInputCurrencyValue.isNotEmpty()) oldInputCurrencyValue.toDouble() else 0.0)
+                    } else { // remove progressBar as no update is required
+                        lifecycleScope.launch(Dispatchers.Main) {
+                            binding.progressBar.visibility = View.GONE
+                        }
                     }
                 }
             }, DELAY)

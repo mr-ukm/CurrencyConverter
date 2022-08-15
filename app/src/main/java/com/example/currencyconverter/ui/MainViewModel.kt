@@ -118,4 +118,12 @@ class MainViewModel @Inject constructor(
             apply()
         }
     }
+
+    fun checkIfTwoStringsAreSameDoubleValues(oldInput: String, newInput: String): Boolean {
+        val doubleValueFromOldInput =
+            if (oldInput.trim().isNotEmpty()) oldInput.trim().toDouble() else 0.0
+        val doubleValueFromNewInput =
+            if (newInput.trim().isNotEmpty()) newInput.trim().toDouble() else 0.0
+        return doubleValueFromOldInput == doubleValueFromNewInput
+    }
 }

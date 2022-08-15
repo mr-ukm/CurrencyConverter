@@ -237,4 +237,18 @@ class MainViewModelTest {
             assertNotEquals("JPP", mainViewModel.getBaseCurrencyValueFromSharedPreference())
         }
     }
+
+    @Test
+    fun `getDoubleValueFromString for dot, 0dot0, dot0`() {
+        runTest {
+            assertEquals(0.0, mainViewModel.getDoubleValueFromString(""), 0.0)
+            assertEquals(0.0, mainViewModel.getDoubleValueFromString("  "), 0.0)
+            assertEquals(0.0, mainViewModel.getDoubleValueFromString("0.0"), 0.0)
+            assertEquals(0.0, mainViewModel.getDoubleValueFromString(".000000"), 0.0)
+            assertEquals(0.0, mainViewModel.getDoubleValueFromString("."), 0.0)
+            assertNotEquals(0.1, mainViewModel.getDoubleValueFromString(".00001"), 0.0)
+            assertEquals(50.03, mainViewModel.getDoubleValueFromString("50.03"), 0.0)
+            assertEquals(0.23, mainViewModel.getDoubleValueFromString(".23"), 0.0)
+        }
+    }
 }

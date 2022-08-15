@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
         private var timer: Timer = Timer()
         private val DELAY: Long = 1000 // For debounce logic
-        private var oldInputCurrencyValue = ""
+        private var oldInputCurrencyValue = 0.0
 
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
         }
@@ -51,13 +51,10 @@ class MainActivity : AppCompatActivity() {
             binding.progressBar.visibility = View.VISIBLE
             timer.schedule(object : TimerTask() {
                 override fun run() {
-                    if (!mainViewModel.checkIfTwoStringsAreSameDoubleValues(
-                            oldInput = oldInputCurrencyValue,
-                            newInput = s.toString()
-                        )
-                    ) {
-                        oldInputCurrencyValue = s.toString().trim()
-                        mainViewModel.updateInputCurrencyValue(if (oldInputCurrencyValue.isNotEmpty()) oldInputCurrencyValue.toDouble() else 0.0)
+                    val newInputCurrencyValue = mainViewModel.getDoubleValueFromString(s.toString())
+                    if (oldInputCurrencyValue != newInputCurrencyValue) {
+                        oldInputCurrencyValue = newInputCurrencyValue
+                        mainViewModel.updateInputCurrencyValue(newInputCurrencyValue)
                     } else { // remove progressBar as no update is required
                         lifecycleScope.launch(Dispatchers.Main) {
                             binding.progressBar.visibility = View.GONE

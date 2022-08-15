@@ -119,11 +119,11 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun checkIfTwoStringsAreSameDoubleValues(oldInput: String, newInput: String): Boolean {
-        val doubleValueFromOldInput =
-            if (oldInput.trim().isNotEmpty()) oldInput.trim().toDouble() else 0.0
-        val doubleValueFromNewInput =
-            if (newInput.trim().isNotEmpty()) newInput.trim().toDouble() else 0.0
-        return doubleValueFromOldInput == doubleValueFromNewInput
+    fun getDoubleValueFromString(numberString: String): Double {
+        return try {
+            numberString.trim().toDouble()
+        } catch (numberFormatException: NumberFormatException) {
+            0.0
+        }
     }
 }

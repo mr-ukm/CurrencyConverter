@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateCurrencyRatesFromAPI(isCalledFromOnCreate: Boolean = false) {
         lifecycleScope.launch {
-            if (!mainViewModel.canDataBeRefreshed()) {
+            if (!mainViewModel.canDataBeRefreshed()) { // check if threshold time is passed since last successful API call
                 if (!isCalledFromOnCreate) { // show snackBar only when is it not auto called from onCreate
                     Snackbar.make(
                         binding.bottomViewSnackBar,
@@ -148,7 +148,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 return@launch
             }
-            mainViewModel.updateCurrencyRatesFromAPI()
+            mainViewModel.updateCurrencyRatesFromAPI() // make API call to get/refresh currency rate data
         }
     }
 
@@ -156,20 +156,19 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             binding.progressBar.visibility = View.VISIBLE
             val updatedCurrencyList = mainViewModel.getCurrencyListFromDB()
-            mainViewModel.updateCurrencyList(currencyList = updatedCurrencyList)
             currencyDropDownAdapter =
                 ArrayAdapter(
                     this@MainActivity,
                     R.layout.item_drop_down,
-                    mainViewModel.getCurrencyList()
+                    updatedCurrencyList
                 )
 
             binding.currencyAutoCompleteTv.setAdapter(currencyDropDownAdapter)
 
-            if (mainViewModel.getCurrencyList()
+            if (updatedCurrencyList
                     .isNotEmpty() && mainViewModel.selectedCurrency.value.isEmpty()
-            ) {
-                binding.currencyAutoCompleteTv.setText(mainViewModel.getCurrencyList()[0], false)
+            ) { // If nothing is selected then making 1st value as default selection
+                binding.currencyAutoCompleteTv.setText(updatedCurrencyList[0], false)
             }
             updateRateValueListAdapter()
             binding.progressBar.visibility = View.GONE

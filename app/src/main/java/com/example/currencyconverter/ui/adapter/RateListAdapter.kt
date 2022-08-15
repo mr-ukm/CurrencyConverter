@@ -13,9 +13,11 @@ class RateListAdapter :
 
     private val rateList: MutableList<Rate> = mutableListOf()
     private var baseCurrency: String = ""
-    private val rateMap: MutableMap<String, Double> = mutableMapOf()
-    private var currentAmount: Double = 0.0
-    private var selectedCurrency: String = ""
+    private val rateMap: MutableMap<String, Double> =
+        mutableMapOf() // mapping of currencyKeys with the currencyValue
+    private var currentAmount: Double = 0.0     // the amount currently entered in editText
+    private var selectedCurrency: String =
+        ""   // current selected currency from drop down currencyList
 
     inner class RateListViewHolder(private val binding: ItemRateListBinding) :
         RecyclerView.ViewHolder(binding.root) {
@@ -66,6 +68,11 @@ class RateListAdapter :
     }
 
     private fun getConvertedAmount(outputCurrencyRate: Double): Double {
+        /* if input amount = 100 & base currency is "USD", selected currency is "JPY" & output currency is "INR"
+            Assuming 1 USD = 133.3 JPY  &&  1 USD = 79.67 INR
+            convertedAmount = (INR/JPY) * amount = (79.67 / 133.3) * 100 = 59.767
+        * */
+
         val selectedCurrencyRate: Double = rateMap.getOrDefault(selectedCurrency, 1.0)
         val convertedAmount = (outputCurrencyRate / selectedCurrencyRate) * currentAmount
 

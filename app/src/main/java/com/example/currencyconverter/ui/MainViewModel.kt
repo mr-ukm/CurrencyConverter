@@ -28,14 +28,14 @@ class MainViewModel @Inject constructor(
     @IODispatcher private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
 
+    private val TAG = MainViewModel::class.simpleName
+
     private val _inputCurrencyAmount: MutableStateFlow<Double> = MutableStateFlow(0.0)
     val inputCurrencyAmount: StateFlow<Double> =
         _inputCurrencyAmount.asStateFlow()
 
     private val _selectedCurrency: MutableStateFlow<String> = MutableStateFlow("")
     val selectedCurrency = _selectedCurrency.asStateFlow()
-
-    private val currencyList: MutableList<String> = mutableListOf()
 
     private val _updateLatestRates: MutableSharedFlow<Response<LatestRateResponse>> =
         MutableSharedFlow()
@@ -51,18 +51,11 @@ class MainViewModel @Inject constructor(
         _selectedCurrency.value = selectedCurrency
     }
 
-    suspend fun updateCurrencyList(currencyList: List<String>) = withContext(defaultDispatcher) {
-        this@MainViewModel.currencyList.clear()
-        this@MainViewModel.currencyList.addAll(currencyList)
-    }
-
-    fun getCurrencyList(): List<String> = this.currencyList
-
     suspend fun updateCurrencyRatesFromAPI() {
         viewModelScope.launch(ioDispatcher) {
             _updateLatestRates.emit(Response.Loading())
             val latestRateResponse = apiRepository.getLatestRates(Constants.GOLUKEY)
-            Log.d("customTag", "API Called")
+            Log.d(TAG, "API Called")
             val responseBody = latestRateResponse.body()
 
             if (latestRateResponse.code() == 200) {
@@ -87,14 +80,14 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    suspend fun getCurrencyListFromDB() =
+    suspend fun getCurrencyListFromDB(): List<String> =
         withContext(ioDispatcher) {
-            return@withContext daoRepository.getCurrencyListFromDB()
+            daoRepository.getCurrencyListFromDB()
         }
 
-    suspend fun getRateListFromDB() =
+    suspend fun getRateListFromDB(): List<Rate> =
         withContext(ioDispatcher) {
-            return@withContext daoRepository.getRateListFromDB()
+            daoRepository.getRateListFromDB()
         }
 
     suspend fun getRateMapFromRateList(rateList: List<Rate>): Map<String, Double> =
@@ -103,17 +96,18 @@ class MainViewModel @Inject constructor(
             rateList.forEach {
                 rateMap[it.currencyName] = it.currentValue
             }
-            return@withContext rateMap
+            rateMap
         }
 
-    suspend fun canDataBeRefreshed() = withContext(defaultDispatcher) {
+    suspend fun canDataBeRefreshed(): Boolean = withContext(defaultDispatcher) {
         val lastSyncTimestamp = sharedPreferences.getLong(Constants.API_SUCCESS_TIMESTAMP, 0)
         (System.currentTimeMillis() - lastSyncTimestamp > Constants.API_SYNC_THRESHOLD)
     }
 
-    suspend fun getBaseCurrencyValueFromSharedPreference() = withContext(defaultDispatcher) {
-        sharedPreferences.getString(Constants.BASE_CURRENCY, "")!!
-    }
+    suspend fun getBaseCurrencyValueFromSharedPreference(): String =
+        withContext(defaultDispatcher) {
+            sharedPreferences.getString(Constants.BASE_CURRENCY, "")!!
+        }
 
     fun updateSharedPreferenceForTimestampAndBaseCurrencyAndStatus(
         baseCurrency: String

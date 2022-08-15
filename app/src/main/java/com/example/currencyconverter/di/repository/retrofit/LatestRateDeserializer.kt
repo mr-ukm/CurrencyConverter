@@ -29,7 +29,7 @@ class LatestRateDeserializer : JsonDeserializer<LatestRateResponse> {
                 val rateJsonObject = it["rates"].asJsonObject
                 val iterator = rateJsonObject.keySet().iterator()
                 val rateMapList: MutableList<Rate> = mutableListOf()
-                while (iterator.hasNext()) {
+                while (iterator.hasNext()) { // iterating through all the currency keys
                     val key = iterator.next()
                     val value = rateJsonObject.get(key).asDouble
                     rateMapList.add(Rate(currencyName = key, currentValue = value))

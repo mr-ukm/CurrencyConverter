@@ -1,9 +1,10 @@
 package com.example.currencyconverter.constant
 
+import com.example.currencyconverter.BuildConfig
+
 class Constants {
     companion object {
-        val MACHAUKEY = "00cb8d8a423b4f478731da5e163e9597"
-        val GOLUKEY = "dc7964ff5d6147ee904a48f645feebe0"
+        val API_KEY = BuildConfig.API_KEY
         val SHARED_PREFERENCE_FILE = "app_shared_preference"
         val API_SUCCESS_TIMESTAMP = "api_success_timestamp"
         val BASE_CURRENCY = "base_currency"

@@ -54,7 +54,7 @@ class MainViewModel @Inject constructor(
     suspend fun updateCurrencyRatesFromAPI() {
         viewModelScope.launch(ioDispatcher) {
             _updateLatestRates.emit(Response.Loading())
-            val latestRateResponse = apiRepository.getLatestRates(Constants.GOLUKEY)
+            val latestRateResponse = apiRepository.getLatestRates(Constants.API_KEY)
             Log.d(TAG, "API Called")
             val responseBody = latestRateResponse.body()
 

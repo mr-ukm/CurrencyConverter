@@ -1,8 +1,8 @@
 # CurrencyConverter
 
-This app is used to show converted rate for different currencies based on the input currency as per the actual realtime rates.
-The API used for getting currency rates is https://openexchangerates.org/
-To avoid overusage of hitting API endpoints, there is a inbuilt time restriction of 30 mins between 2 successful API call.
+This app is used to show converted rate for different currencies based on the input currency as per the actual realtime rates.  
+The API used for getting currency rates is https://openexchangerates.org/  
+To avoid overusage of hitting API endpoints, there is a inbuilt time restriction of 30 mins between 2 successful API call.  
 
 ## How to use
 1. On the launch of app, the app itself updates the rates if more than 30 mins has passed.  

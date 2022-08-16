@@ -20,3 +20,8 @@ To avoid overusage of hitting API endpoints, there is a inbuilt time restriction
 8. Coroutines
 9. Flow
 10. MutableStates & SharedStates
+
+# Demo of App
+
+https://user-images.githubusercontent.com/36126610/184823986-14a54932-47b3-4fb3-923c-b464b22ac36d.mp4
+
